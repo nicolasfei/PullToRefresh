@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--注意这里的name要和自定义View的名称一致，不然在布局文件中无法引用-->
+    <declare-styleable name="CircleProgressBarView">
+        <!--进度条颜色-->
+        <attr name="progressColor" format="color" />
+        <!--背景颜色-->
+        <attr name="backgroundColor" format="color" />
+        <!--进度条宽度-->
+        <attr name="progressWidth" format="dimension" />
+        <!--进度条的起始角度-->
+        <attr name="startAngle" format="float" />
+        <!--进度条扫描角度-->
+        <attr name="sweepAngle" format="float"/>
+        <!--进度-->
+        <attr name="progress" format="integer" />
+        <!--最大进度-->
+        <attr name="max" format="integer" />
+    </declare-styleable>
+</resources>
