@@ -42,7 +42,7 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
         headerViewHeight = headerView.getMeasuredHeight();
         Log.d(TAG, "initView: headerViewHeight is " + headerViewHeight);
         headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
-        headerView.setPullTriggerHeight(MOV_REFRESH_DIS);       //设置移动触发刷新距离
+        headerView.setPullTriggerHeight(headerViewHeight);       //设置移动触发刷新距离
         headerView.setVisibilityHeight(0);
         addHeaderView(headerView);
 
@@ -64,8 +64,8 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                 int instance = (int) (moveY - downY);
                 if (instance > 0) {
                     headerView.setStatus(HeaderView.STATE_READY);
-                    if (instance > 2 * headerViewHeight) {      //最大下拉距离
-                        headerView.setPadding(0, 2 * headerViewHeight, 0, 0);
+                    if (instance > 3 * headerViewHeight) {      //最大下拉距离
+                        headerView.setPadding(0, 3 * headerViewHeight, 0, 0);
                         return true;
                     } else {
                         headerView.setPadding(0, instance, 0, 0);
