@@ -8,7 +8,9 @@
 
     <com.nicolas.library.CircleProgressBarView
         android:id="@+id/progressBar"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        app:progressWidth="5dp" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:progressWidth="2dp"
+        app:startAngle="90"
+        app:sweepAngle="360"/>
 </LinearLayout>

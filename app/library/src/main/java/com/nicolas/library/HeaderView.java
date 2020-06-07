@@ -55,11 +55,13 @@ public class HeaderView extends LinearLayout {
         this.status = status;
         switch (status) {
             case STATE_NORMAL:
+                this.progressBar.stopAnimation();
                 break;
             case STATE_READY:
 //                this.progressBar.setProgress(100);
                 break;
             case STATE_REFRESHING:
+                this.progressBar.startAutoPlayAnimation();
                 break;
         }
     }
@@ -69,7 +71,6 @@ public class HeaderView extends LinearLayout {
     }
 
     public void setVisibilityHeight(int height) {
-        this.setPadding(0, height, 0, 0);
         int progress = height * 100 / pullTriggerHeight;
         Log.d(TAG, "setVisibilityHeight: progress is " + progress + " height is " + height + " pullTriggerHeight is " + pullTriggerHeight);
         this.progressBar.setProgress(Math.min(progress, 100));

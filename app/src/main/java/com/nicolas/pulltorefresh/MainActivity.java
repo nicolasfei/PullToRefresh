@@ -1,10 +1,14 @@
 package com.nicolas.pulltorefresh;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import com.nicolas.library.PullToRefreshListView;
 
@@ -25,17 +29,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 Log.d(TAG, "onRefresh: ");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                refreshFinish();
+                new Thread(runnable).start();
             }
         });
     }
 
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(5000);
+                handler.sendEmptyMessage(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what) {
+                case 1:
+                    refreshFinish();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private void refreshFinish() {
+        Toast.makeText(this, "刷新完成", Toast.LENGTH_SHORT).show();
         listView.refreshFinish();
     }
 }
