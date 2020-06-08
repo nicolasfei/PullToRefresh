@@ -16,6 +16,9 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
     private Context context;
 
     private int headerViewHeight;
+    private int headerViewTriggerHeight;
+    private int footerViewHeight;
+    private int footerViewTriggerHeight;
     private float downY;        //按下时Y的坐标
     private float downX;        //按下时X的坐标
     private float moveY;        //移动时Y的坐标
@@ -44,15 +47,19 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
         headerView = new HeaderView(this.context);
         headerView.measure(0, 0);        //测量尺寸
         headerViewHeight = headerView.getMeasuredHeight();
-        Log.d(TAG, "initView: headerViewHeight is " + headerViewHeight);
         headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
-        headerView.setPullTriggerHeight(2 * headerViewHeight);       //设置移动触发刷新距离
+        headerViewTriggerHeight = 2 * headerViewHeight;
+        headerView.setPullTriggerHeight(headerViewTriggerHeight);       //设置移动触发刷新距离
         headerView.setVisibilityHeight(0);
         addHeaderView(headerView);
         biggestPullDistance = 3 * headerViewHeight;
 
         //加载尾
         footerView = new FooterView(this.context);
+        footerView.measure(0, 0);
+        footerViewHeight = footerView.getMeasuredHeight();
+        footerViewTriggerHeight = 2 * footerViewHeight;
+        footerView.setPullUpTriggerHeight(footerViewTriggerHeight);       //设置移动触发刷新距离
         addFooterView(footerView);
     }
 
@@ -60,36 +67,93 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
     public boolean onTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:       //用户按下
-                downY = ev.getY();      //记录按下时候的Y坐标
-                downX = ev.getX();
+                if (getFirstVisiblePosition() == 0 || getLastVisiblePosition() == getCount() - 1) {
+                    downY = ev.getY();      //记录按下时候的Y坐标
+                    downX = ev.getX();
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
-                moveY = ev.getY();
-                moveX = ev.getX();
-                instanceY = (int) (moveY - downY);
-                instanceX = (int) (moveX - downX);
-                //判断是否是下拉
-                if (instanceY > 0 && Math.abs(instanceY) > Math.abs(instanceX) && headerView.getStatus() != HeaderView.STATE_REFRESHING) {
-                    headerView.setStatus(HeaderView.STATE_READY);
-                    if (instanceY > biggestPullDistance) {      //最大下拉距离
-                        headerView.setPadding(0, 3 * headerViewHeight, 0, 0);
-                        return true;
-                    } else {
-                        headerView.setPadding(0, instanceY, 0, 0);
+                //判断list view是否滑倒顶端了
+                if (getFirstVisiblePosition() == 0) {
+                    moveY = ev.getY();
+                    moveX = ev.getX();
+                    instanceY = (int) (moveY - downY);
+                    instanceX = (int) (moveX - downX);
+                    //判断是否是下拉行为
+                    if (instanceY > 0 && instanceY > Math.abs(instanceX)) {
+                        //判断头和尾View的状态---判断footerView的状态，是为了防止用户按下后上下来回滑动造成的误判
+                        if (headerView.getStatus() != HeaderView.STATE_REFRESHING && footerView.getStatus() == FooterView.LOAD_NORMAL) {
+                            headerView.setStatus(HeaderView.STATE_READY);
+                            if (instanceY > biggestPullDistance) {      //最大下拉距离
+                                headerView.setPadding(0, biggestPullDistance, 0, 0);
+                                return true;
+                            } else {
+                                headerView.setPadding(0, instanceY, 0, 0);
+                            }
+                            headerView.setVisibilityHeight(instanceY);
+                        }
                     }
-                    headerView.setVisibilityHeight(instanceY);
+                }
+                //判断listView是否滑倒了底部
+                if (getLastVisiblePosition() == getCount() - 1) {
+                    moveY = ev.getY();
+                    moveX = ev.getX();
+                    instanceY = (int) (moveY - downY);
+                    instanceX = (int) (moveX - downX);
+                    //判断是否是上拉行为
+                    if (instanceY < 0 && -instanceY > Math.abs(instanceX)) {
+                        //判断头和尾View的状态---判断headerView的状态，是为了防止用户按下后上下来回滑动造成的误判
+                        if (footerView.getStatus() != FooterView.LOAD_LOADING && headerView.getStatus() == HeaderView.STATE_NORMAL) {
+                            footerView.setStatus(FooterView.LOAD_READY);
+                            footerView.setVisibilityHeight(Math.abs(instanceY));
+                        }
+                    }
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if (instanceY > headerViewHeight) {
-                    if (headerView.getStatus() != HeaderView.STATE_REFRESHING) {
-                        headerView.setStatus(HeaderView.STATE_REFRESHING);
-                        if (this.onRefreshListener != null) {
-                            this.onRefreshListener.onRefresh();
+                //判断是否是垂直动作(下拉/上拉)
+//                Log.d(TAG, "onTouchEvent: instanceY is " + instanceY + " instanceX is " + instanceX);
+//                Log.d(TAG, "onTouchEvent: headerViewTriggerHeight is " + headerViewTriggerHeight + " footerViewTriggerHeight is " + footerViewTriggerHeight);
+//                Log.d(TAG, "onTouchEvent: headerView Status is " + headerView.getStatus() + " footerView status is " + footerView.getStatus());
+                //判断list view是否滑倒顶端了
+                if (getFirstVisiblePosition() == 0) {
+                    //判断头状态
+                    if (headerView.getStatus() == HeaderView.STATE_READY) {
+                        //判断下拉距离是否大于触发距离
+                        if (instanceY >= headerViewTriggerHeight) {
+                            //触发刷新
+                            headerView.setStatus(HeaderView.STATE_REFRESHING);
+                            if (this.onRefreshListener != null) {
+                                this.onRefreshListener.onRefresh();
+                            }
+                        } else {
+                            //还原
+                            this.headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
+                            this.headerView.setStatus(HeaderView.STATE_NORMAL);
                         }
                     }
-                } else {
-                    this.headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
+                    downY = 0;
+                    downX = 0;
+                }
+
+                //判断listView是否滑倒了底部
+                if (getLastVisiblePosition() == getCount() - 1) {
+                    //判断footer状态
+                    if (footerView.getStatus() == FooterView.LOAD_READY) {
+                        //判断上拉距离是否大于触发距离
+                        if (-instanceY >= footerViewTriggerHeight) {
+                            //触发加载
+                            footerView.setStatus(FooterView.LOAD_LOADING);
+                            if (this.onLoadingMoreListener != null) {
+                                this.onLoadingMoreListener.onLoadingMore();
+                            }
+                        } else {
+                            //还原
+                            this.footerView.setStatus(FooterView.LOAD_NORMAL);
+                        }
+                    }
+                    downY = 0;
+                    downX = 0;
                 }
                 break;
             default:
@@ -112,6 +176,11 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
     public void refreshFinish() {
         this.headerView.setStatus(HeaderView.STATE_NORMAL);
         this.headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
+    }
+
+    public void loadMoreFinish(String loadFinishDescribe) {
+        this.footerView.setStatus(FooterView.LOAD_NORMAL);
+        this.footerView.setLoadFinishDescribe(loadFinishDescribe);
     }
 
     public void setOnRefreshListener(OnRefreshListener listener) {

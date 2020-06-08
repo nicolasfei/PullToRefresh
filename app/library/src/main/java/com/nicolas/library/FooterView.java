@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -15,16 +14,17 @@ import androidx.annotation.Nullable;
 public class FooterView extends LinearLayout {
     private static final String TAG = "FooterView";
     private Context mContext;
-    private ProgressBar progressBar;
-    private TextView textView;
+    private CircleProgressBarView progressBar;
+    private TextView loadMore;
+    private TextView loading;
     private RelativeLayout mContainer;
 
-    private int status;                     //状态
-    private int pullTriggerHeight = 180;   //触发STATE_READY状态的高度
+    private int status;                            //状态
+    private int pullUpTriggerHeight = 180;         //触发STATE_READY状态的高度
 
-    public final static int STATE_NORMAL = 0;       //一般状态
-    public final static int STATE_READY = 1;        //上拉中。。。
-    public final static int STATE_REFRESHING = 2;   //刷新中
+    public final static int LOAD_NORMAL = 0;       //一般状态
+    public final static int LOAD_READY = 1;        //上拉中。。。
+    public final static int LOAD_LOADING = 2;      //加载中
 
     public FooterView(Context context) {
         super(context);
@@ -39,11 +39,12 @@ public class FooterView extends LinearLayout {
     private void initView(Context context) {
         this.mContext = context;
         this.mContainer = (RelativeLayout) LayoutInflater.from(this.mContext).inflate(R.layout.footer_layout, null, false);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         addView(this.mContainer, lp);       //添加LinearLayout
         setGravity(Gravity.BOTTOM);
-        this.progressBar = this.mContainer.findViewById(R.id.progressBar2);
-        this.textView = this.mContainer.findViewById(R.id.textView);
+        this.progressBar = this.mContainer.findViewById(R.id.progressBar);
+        this.loadMore = this.mContainer.findViewById(R.id.loadMore);
+        this.loading = this.mContainer.findViewById(R.id.loading);
     }
 
     public void setStatus(int status) {
@@ -52,19 +53,32 @@ public class FooterView extends LinearLayout {
         }
         this.status = status;
         switch (status) {
-            case STATE_NORMAL:
+            case LOAD_NORMAL:           //显示上拉加载更多
                 if (this.progressBar.getVisibility() == VISIBLE) {
-                    this.progressBar.setVisibility(GONE);
+                    this.progressBar.setVisibility(INVISIBLE);
+                    this.loading.setVisibility(INVISIBLE);
+                    this.progressBar.stopAnimation();
                 }
-                this.progressBar.setIndeterminate(false);
-                break;
-            case STATE_READY:
-                if (this.textView.getVisibility() == VISIBLE) {
-                    this.textView.setVisibility(GONE);
+                if (this.loadMore.getVisibility() != VISIBLE) {
+                    this.loadMore.setVisibility(VISIBLE);
                 }
                 break;
-            case STATE_REFRESHING:
-                this.progressBar.setIndeterminate(true);        //一直转圈
+            case LOAD_READY:
+                if (this.loadMore.getVisibility() == VISIBLE) {
+                    this.loadMore.setVisibility(INVISIBLE);
+                }
+                if (this.progressBar.getVisibility() != VISIBLE) {
+                    this.progressBar.setVisibility(VISIBLE);
+                }
+                if (this.loading.getVisibility() != GONE) {
+                    this.loading.setVisibility(GONE);
+                }
+                break;
+            case LOAD_LOADING:
+                if (this.loading.getVisibility() != VISIBLE) {
+                    this.loading.setVisibility(VISIBLE);
+                }
+                this.progressBar.startAutoPlayAnimation();        //一直转圈
                 break;
         }
     }
@@ -73,14 +87,12 @@ public class FooterView extends LinearLayout {
         return status;
     }
 
+    public void setPullUpTriggerHeight(int pullUpTriggerHeight) {
+        this.pullUpTriggerHeight = pullUpTriggerHeight;
+    }
+
     public void setVisibilityHeight(int height) {
-        if (height < 0)
-            height = 0;
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) this.mContainer.getLayoutParams();
-        lp.height = height;
-        this.mContainer.setLayoutParams(lp);
-        int progress = height * 100 / pullTriggerHeight;
-        Log.d(TAG, "setVisibilityHeight: progress is " + progress + " height is " + height + " pullTriggerHeight is " + pullTriggerHeight);
+        int progress = height * 100 / pullUpTriggerHeight;
         this.progressBar.setProgress(Math.min(progress, 100));
     }
 
@@ -88,7 +100,7 @@ public class FooterView extends LinearLayout {
         return mContainer.getHeight();
     }
 
-    public void setText(String text) {
-        this.textView.setText(text);
+    public void setLoadFinishDescribe(String loadFinishDescribe) {
+        this.loadMore.setText(loadFinishDescribe);
     }
 }

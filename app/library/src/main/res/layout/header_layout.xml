@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="top|center"
-    android:orientation="vertical">
+    android:gravity="center"
+    android:orientation="horizontal">
 
     <com.nicolas.library.CircleProgressBarView
         android:id="@+id/progressBar"
@@ -12,5 +12,13 @@
         android:layout_height="40dp"
         app:progressWidth="2dp"
         app:startAngle="90"
-        app:sweepAngle="360"/>
+        app:sweepAngle="360" />
+
+    <TextView
+        android:id="@+id/refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="数据刷新中..."
+        android:visibility="gone" />
 </LinearLayout>

@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
@@ -15,6 +16,7 @@ public class HeaderView extends LinearLayout {
     private int status;                 //状态
     private LinearLayout mContainer;
     private CircleProgressBarView progressBar;
+    private TextView refresh;
 
     private int pullTriggerHeight = 300;   //触发STATE_READY状态的高度
 
@@ -42,6 +44,7 @@ public class HeaderView extends LinearLayout {
         setGravity(Gravity.BOTTOM);
         //初始化progressBar
         this.progressBar = this.mContainer.findViewById(R.id.progressBar);
+        this.refresh = this.mContainer.findViewById(R.id.refresh);
     }
 
     public void setPullTriggerHeight(int pullTriggerHeight) {
@@ -56,12 +59,18 @@ public class HeaderView extends LinearLayout {
         switch (status) {
             case STATE_NORMAL:
                 this.progressBar.stopAnimation();
+                if (this.refresh.getVisibility() != GONE) {
+                    this.refresh.setVisibility(GONE);
+                }
                 break;
             case STATE_READY:
 //                this.progressBar.setProgress(100);
                 break;
             case STATE_REFRESHING:
                 this.progressBar.startAutoPlayAnimation();
+                if (this.refresh.getVisibility() != VISIBLE) {
+                    this.refresh.setVisibility(VISIBLE);
+                }
                 break;
         }
     }
@@ -72,7 +81,6 @@ public class HeaderView extends LinearLayout {
 
     public void setVisibilityHeight(int height) {
         int progress = height * 100 / pullTriggerHeight;
-        Log.d(TAG, "setVisibilityHeight: progress is " + progress + " height is " + height + " pullTriggerHeight is " + pullTriggerHeight);
         this.progressBar.setProgress(Math.min(progress, 100));
     }
 
