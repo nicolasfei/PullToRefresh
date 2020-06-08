@@ -2,13 +2,11 @@ package com.nicolas.library;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
 public class PullToRefreshListView extends ListView implements AbsListView.OnScrollListener {
-    private static final String TAG = "PullToRefreshListView";
 
     private HeaderView headerView;
     private FooterView footerView;
