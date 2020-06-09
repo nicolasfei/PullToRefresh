@@ -11,11 +11,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -26,8 +24,6 @@ import androidx.annotation.Nullable;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 public class CircleProgressBarView extends View {
-
-    private static final String TAG = "CircleProgressBarView";
 
     private Context context;
 
@@ -138,7 +134,7 @@ public class CircleProgressBarView extends View {
         super.onDraw(canvas);
         //画view
         //画背景圆
-        canvas.drawCircle(pivotX, pivotY, rectSize / 2, backgroundPaint);
+        canvas.drawCircle(pivotX, pivotY, (float) rectSize / 2, backgroundPaint);
         //画圆弧
         canvas.drawArc(mRectF, startAngle, progressSweepAngle, false, progressPaint);
         //画箭头
