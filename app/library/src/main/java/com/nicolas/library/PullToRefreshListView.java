@@ -88,12 +88,7 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                         if (headerView.getStatus() != HeaderView.STATE_REFRESHING && footerView.getStatus() == FooterView.LOAD_NORMAL) {
                             if (instanceY > headerViewReadyHeight) {
                                 headerView.setStatus(HeaderView.STATE_READY);
-                                if (instanceY- headerViewReadyHeight > biggestPullDistance) {      //最大下拉距离
-                                    headerView.setPadding(0, biggestPullDistance, 0, 0);
-//                                    return true;
-                                } else {
-                                    headerView.setPadding(0, instanceY- headerViewReadyHeight, 0, 0);
-                                }
+                                headerView.setPadding(0, Math.min(instanceY - headerViewReadyHeight, biggestPullDistance), 0, 0);
                                 headerView.setVisibilityHeight(instanceY - headerViewReadyHeight);
                             }
                         }
