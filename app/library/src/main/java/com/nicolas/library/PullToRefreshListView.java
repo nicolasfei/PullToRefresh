@@ -134,12 +134,11 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                             this.headerView.setStatus(HeaderView.STATE_NORMAL);
                         }
                     }
-                }else {
-                    if (headerView.getStatus()==HeaderView.STATE_READY){
-                        Log.d(TAG, "onTouchEvent: HeaderView.STATE_READY");
-                        headerView.setStatus(HeaderView.STATE_NORMAL);
-                        headerView.setPadding(0,-headerViewHeight,0,0);
-                    }
+                }
+                if (headerView.getStatus() == HeaderView.STATE_READY) {
+                    Log.d(TAG, "onTouchEvent: HeaderView.STATE_READY");
+                    headerView.setStatus(HeaderView.STATE_NORMAL);
+                    headerView.setPadding(0, -headerViewHeight, 0, 0);
                 }
 
                 //判断listView是否滑倒了底部
@@ -159,11 +158,10 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                         }
                     }
 
-                }else {
-                    if (footerView.getStatus()==FooterView.LOAD_READY){
-                        Log.d(TAG, "onTouchEvent: FooterView.LOAD_READY");
-                        footerView.setStatus(FooterView.LOAD_NORMAL);
-                    }
+                }
+                if (footerView.getStatus() == FooterView.LOAD_READY) {
+                    Log.d(TAG, "onTouchEvent: FooterView.LOAD_READY");
+                    footerView.setStatus(FooterView.LOAD_NORMAL);
                 }
                 downY = 0;
                 downX = 0;
