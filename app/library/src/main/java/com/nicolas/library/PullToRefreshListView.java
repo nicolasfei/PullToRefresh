@@ -2,20 +2,23 @@ package com.nicolas.library;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
 public class PullToRefreshListView extends ListView implements AbsListView.OnScrollListener {
-
+    private static final String TAG = "PullToRefreshListView";
     private HeaderView headerView;
     private FooterView footerView;
 
     private Context context;
 
     private int headerViewHeight;
+    private int headerViewReadyHeight;
     private int headerViewTriggerHeight;
     private int footerViewHeight;
+    private int footerViewReadyHeight;
     private int footerViewTriggerHeight;
     private float downY;        //按下时Y的坐标
     private float downX;        //按下时X的坐标
@@ -46,18 +49,20 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
         headerView.measure(0, 0);        //测量尺寸
         headerViewHeight = headerView.getMeasuredHeight();
         headerView.setPadding(0, -headerViewHeight, 0, 0);      //设置边距为-headerViewHeight，则会隐藏，通过设置headerView的padding来实现下拉过程
-        headerViewTriggerHeight = 2 * headerViewHeight;
-        headerView.setPullTriggerHeight(headerViewTriggerHeight);       //设置移动触发刷新距离
+        headerViewReadyHeight = 1 * headerViewHeight;
+        headerViewTriggerHeight = 5 * headerViewHeight;
+        headerView.setPullTriggerHeight(headerViewTriggerHeight - headerViewReadyHeight);       //设置移动触发刷新距离
         headerView.setVisibilityHeight(0);
         addHeaderView(headerView);
-        biggestPullDistance = 3 * headerViewHeight;
+        biggestPullDistance = 2 * headerViewHeight;
 
         //加载尾
         footerView = new FooterView(this.context);
         footerView.measure(0, 0);
         footerViewHeight = footerView.getMeasuredHeight();
-        footerViewTriggerHeight = 2 * footerViewHeight;
-        footerView.setPullUpTriggerHeight(footerViewTriggerHeight);       //设置移动触发刷新距离
+        footerViewReadyHeight = 1 * footerViewHeight;
+        footerViewTriggerHeight = 5 * footerViewHeight;
+        footerView.setPullUpTriggerHeight(footerViewTriggerHeight - footerViewReadyHeight);       //设置移动触发刷新距离
         addFooterView(footerView);
     }
 
@@ -81,14 +86,16 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                     if (instanceY > 0 && instanceY > Math.abs(instanceX)) {
                         //判断头和尾View的状态---判断footerView的状态，是为了防止用户按下后上下来回滑动造成的误判
                         if (headerView.getStatus() != HeaderView.STATE_REFRESHING && footerView.getStatus() == FooterView.LOAD_NORMAL) {
-                            headerView.setStatus(HeaderView.STATE_READY);
-                            if (instanceY > biggestPullDistance) {      //最大下拉距离
-                                headerView.setPadding(0, biggestPullDistance, 0, 0);
-                                return true;
-                            } else {
-                                headerView.setPadding(0, instanceY, 0, 0);
+                            if (instanceY > headerViewReadyHeight) {
+                                headerView.setStatus(HeaderView.STATE_READY);
+                                if (instanceY- headerViewReadyHeight > biggestPullDistance) {      //最大下拉距离
+                                    headerView.setPadding(0, biggestPullDistance, 0, 0);
+//                                    return true;
+                                } else {
+                                    headerView.setPadding(0, instanceY- headerViewReadyHeight, 0, 0);
+                                }
+                                headerView.setVisibilityHeight(instanceY - headerViewReadyHeight);
                             }
-                            headerView.setVisibilityHeight(instanceY);
                         }
                     }
                 }
@@ -102,8 +109,10 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                     if (instanceY < 0 && -instanceY > Math.abs(instanceX)) {
                         //判断头和尾View的状态---判断headerView的状态，是为了防止用户按下后上下来回滑动造成的误判
                         if (footerView.getStatus() != FooterView.LOAD_LOADING && headerView.getStatus() == HeaderView.STATE_NORMAL) {
-                            footerView.setStatus(FooterView.LOAD_READY);
-                            footerView.setVisibilityHeight(Math.abs(instanceY));
+                            if (-instanceY > footerViewReadyHeight) {
+                                footerView.setStatus(FooterView.LOAD_READY);
+                                footerView.setVisibilityHeight(Math.abs(instanceY) - footerViewReadyHeight);
+                            }
                         }
                     }
                 }
@@ -130,8 +139,12 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                             this.headerView.setStatus(HeaderView.STATE_NORMAL);
                         }
                     }
-                    downY = 0;
-                    downX = 0;
+                }else {
+                    if (headerView.getStatus()==HeaderView.STATE_READY){
+                        Log.d(TAG, "onTouchEvent: HeaderView.STATE_READY");
+                        headerView.setStatus(HeaderView.STATE_NORMAL);
+                        headerView.setPadding(0,-headerViewHeight,0,0);
+                    }
                 }
 
                 //判断listView是否滑倒了底部
@@ -150,9 +163,15 @@ public class PullToRefreshListView extends ListView implements AbsListView.OnScr
                             this.footerView.setStatus(FooterView.LOAD_NORMAL);
                         }
                     }
-                    downY = 0;
-                    downX = 0;
+
+                }else {
+                    if (footerView.getStatus()==FooterView.LOAD_READY){
+                        Log.d(TAG, "onTouchEvent: FooterView.LOAD_READY");
+                        footerView.setStatus(FooterView.LOAD_NORMAL);
+                    }
                 }
+                downY = 0;
+                downX = 0;
                 break;
             default:
                 break;

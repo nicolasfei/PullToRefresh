@@ -62,6 +62,7 @@ public class HeaderView extends LinearLayout {
                 if (this.refresh.getVisibility() != GONE) {
                     this.refresh.setVisibility(GONE);
                 }
+                this.progressBar.setProgress(0);
                 break;
             case STATE_READY:
 //                this.progressBar.setProgress(100);
